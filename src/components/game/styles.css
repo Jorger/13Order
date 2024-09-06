@@ -1,0 +1,42 @@
+.game {
+  flex-direction: column;
+}
+
+.game.si-3 .tile {
+  font-size: 100px;
+}
+
+.game.si-4 .tile {
+  font-size: 70px;
+  border-radius: 9px;
+}
+
+.game.si-5 .tile {
+  font-size: 50px;
+  border-radius: 8px;
+}
+
+.game.si-6 .tile {
+  font-size: 40px;
+  border-radius: 7px;
+}
+
+.game.si-7 .tile {
+  font-size: 35px;
+  border-radius: 7px;
+}
+
+.game.si-8 .tile {
+  font-size: 30px;
+  border-radius: 8px;
+}
+
+.game.si-9 .tile {
+  font-size: 25px;
+  border-radius: 7px;
+}
+
+.game.si-10 .tile {
+  font-size: 20px;
+  border-radius: 6px;
+}

@@ -1,0 +1,12 @@
+.grid {
+  background: #81441a;
+  border-radius: 10px;
+  position: relative;
+  /* outline: 5px solid #653210; */
+
+  box-shadow: black 0px 0px 0px 3px, #be835d 0px 0px 0px 6px,
+    rgb(255, 217, 19) 0px 0px 0px 9px;
+
+  /* box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px inset,
+    rgba(0, 0, 0, 0.22) 0px 10px 10px inset; */
+}
