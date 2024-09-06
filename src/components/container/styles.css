@@ -1,0 +1,96 @@
+body {
+  --c1: #81441a;
+  --c2: #c9823d;
+  --si: 64px 64px, 64px 64px, 32px 32px, 32px 32px;
+
+  --bg: radial-gradient(
+        circle,
+        transparent 20%,
+        var(--c2) 20%,
+        var(--c2) 80%,
+        transparent 80%,
+        transparent
+      )
+      0% 0% / 64px 64px,
+    radial-gradient(
+        circle,
+        transparent 20%,
+        var(--c2) 20%,
+        var(--c2) 80%,
+        transparent 80%,
+        transparent
+      )
+      32px 32px / 64px 64px,
+    linear-gradient(var(--c1) 2px, transparent 2px) 0px -1px / 32px 32px,
+    linear-gradient(90deg, var(--c1) 2px, var(--c2) 2px) -1px 0px / 32px 32px var(--c2);
+
+  /*
+  --bg: conic-gradient(at 16px calc(100% - 16px), #0000 270deg, var(--c1) 0)
+      calc(16px + 12px) 0,
+    linear-gradient(#d5712c 16px, #0000 0) 0 12px,
+    conic-gradient(
+      at 16px calc(100% - 16px),
+      #0000 90deg,
+      #d5712c 0 180deg,
+      var(--c1) 0
+    ),
+    var(--c2);
+    */
+  /*
+  --bg: repeating-linear-gradient(
+      transparent,
+      transparent 8px,
+      var(--c1) 8px,
+      var(--c1) 12px,
+      transparent 12px,
+      transparent 16px,
+      var(--c1) 12px,
+      var(--c1) 32px,
+      transparent 32px,
+      transparent 36px,
+      var(--c1) 36px,
+      var(--c1) 40px,
+      transparent 40px,
+      transparent 64px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 8px,
+      var(--c1) 8px,
+      var(--c1) 12px,
+      transparent 12px,
+      transparent 16px,
+      var(--c1) 12px,
+      var(--c1) 32px,
+      transparent 32px,
+      transparent 36px,
+      var(--c1) 36px,
+      var(--c1) 40px,
+      transparent 40px,
+      transparent 64px
+    ),
+    var(--c2);
+    */
+}
+
+#container {
+  background: var(--bg);
+  background-size: var(--si);
+  /* background-color: var(--c2); */
+  /* background-blend-mode: multiply; */
+  /* background-size: calc(2 * (16px + 12px)) calc(2 * (16px + 12px)); */
+  /* background-color: #c9823d; */
+}
+
+@media only screen and (max-width: 420px) {
+  #container {
+    background: unset;
+  }
+
+  body {
+    background: var(--bg);
+    background-size: var(--si);
+    /* background-color: var(--c2); */
+  }
+}
