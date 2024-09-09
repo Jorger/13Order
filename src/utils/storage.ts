@@ -1,6 +1,6 @@
 import { isValidJson } from "./helpers";
 
-const CACHE_KEY = "THIRTEEN_HOURS";
+const CACHE_KEY = "THIRTEEN_ORDER_JS13K";
 
 /**
  * Guarda la información en caché (session o localstorage)...

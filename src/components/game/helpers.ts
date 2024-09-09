@@ -11,8 +11,11 @@ import {
   fillArray,
   generateUUID,
   setHtml,
+  showIntervalValue,
 } from "../../utils/helpers";
 import Alert from "../alert";
+import Screen from "../../Screen";
+import { savePropierties } from "../../utils/storage";
 
 let SIZE_TILE = 0;
 let GRID: TileProps[][] = [];
@@ -289,20 +292,24 @@ const clickOnTile = async (id = "") => {
      * Se valida si las fichas ya están ordenadas...
      */
     if (validateOrderedTiles()) {
+      // Se guarda el tiempo que tomó resolver el nivel...
+      savePropierties<{ m: number; s: number }>(`t-${SIZE_LEVEL}`, TIMER);
       stopChronometer();
       LEVEL_COMPLETED = true;
       await delay(500);
 
       Alert.show({
         icon: "🎉",
-        txt: `<h4>Excellent, you solved the level in ${showIntervalValue()}, do you want to play again?</h4>`,
+        txt: `<h4>Excellent, you solved the level in ${showIntervalValue(
+          TIMER
+        )}, do you want to play again?</h4>`,
         no: "No",
         yes: "Yes",
         cb: (succes) => {
           if (succes) {
             startGame();
           } else {
-            console.log("ir al lobby");
+            Screen();
           }
         },
       });
@@ -317,16 +324,10 @@ const stopChronometer = () => {
   }
 };
 
-const serializeIntervalNumber = (number = 0) =>
-  number <= 9 ? `0${number}` : `${number}`;
-
-const showIntervalValue = () =>
-  `${serializeIntervalNumber(TIMER.m)}:${serializeIntervalNumber(TIMER.s)}`;
-
 const startChronometer = () => {
   stopChronometer();
 
-  TIMER_ELEMET!.textContent = showIntervalValue();
+  TIMER_ELEMET!.textContent = showIntervalValue(TIMER);
 
   INTERVAL_CHRONOMETER = setInterval(() => {
     TIMER.s++;
@@ -340,7 +341,7 @@ const startChronometer = () => {
       }
     }
 
-    TIMER_ELEMET!.textContent = showIntervalValue();
+    TIMER_ELEMET!.textContent = showIntervalValue(TIMER);
   }, 1000);
 };
 
@@ -398,7 +399,8 @@ export const initComponent = (size = 3) => {
     }
 
     if (action === "lobby") {
-      console.log("IR AL LOBBY");
+      startChronometer();
+      Screen();
     }
   });
 
