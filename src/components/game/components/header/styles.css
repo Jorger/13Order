@@ -1,0 +1,34 @@
+.game-he {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  padding: 15px;
+  background: #411a0a;
+  flex-direction: column;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+
+.game-he-s,
+.game-he-t {
+  font-size: 20px;
+  color: #f6ca95;
+}
+
+.game-he-s {
+  margin-bottom: 5px;
+}
+
+.game-he-t {
+  letter-spacing: 1px;
+  background: #0d0401;
+  width: 30%;
+  padding: 5px;
+  border-radius: 10px;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset,
+    rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+}
+
+.game-he-t span {
+  margin-left: 10px;
+}

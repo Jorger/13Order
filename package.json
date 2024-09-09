@@ -8,7 +8,7 @@
     "build": "webpack --mode production && npm run zip",
     "zip": "node scripts/zip.js",
     "serve": "webpack --mode production && serve -s dist -l 4050",
-    "vercel": "webpack --mode production && vercel --prod"
+    "vercel": "webpack --mode production && vercel --prod ./dist"
   },
   "keywords": [],
   "author": "",
