@@ -1,5 +1,5 @@
 .game {
-  flex-direction: column;
+  position: relative;
 }
 
 .game.si-3 .tile {

@@ -56,6 +56,13 @@ export const addStyle = (
   }
 };
 
+export const inlineStyles = (styles: Record<string, string>) =>
+  Object.keys(styles).length
+    ? `style='${Object.keys(styles)
+        .map((v) => `${v}:${styles[v]}`)
+        .join(";")}'`
+    : "";
+
 export const debounce = (fn: Function, delay: number) => {
   var t: number;
   return function () {
