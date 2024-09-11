@@ -26,6 +26,7 @@
 }
 
 .game-fo-b {
+  position: relative;
   border-radius: 50%;
   font-size: 30px;
   height: 60px;
@@ -45,4 +46,20 @@
 
 .game-fo-b[disabled] {
   opacity: 0.5;
+}
+
+#help span {
+  background: white;
+  border-radius: 50%;
+  border: 1px solid black;
+  color: black;
+  font-size: 12px;
+  font-weight: bold;
+  height: 18px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  text-shadow: none;
+  top: 0;
+  width: 18px;
 }

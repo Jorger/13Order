@@ -13,9 +13,9 @@ export default () =>
       let isDisabled = false;
       const hasTime = time.m >= 0 || time.s >= 0;
 
-      // if (size >= 7) {
-      //   isDisabled = !hasTime;
-      // }
+      if (size >= 8) {
+        isDisabled = !hasTime;
+      }
 
       /**
        * Renderiza el tiempo si ya se ha solucionado o un label, invitando

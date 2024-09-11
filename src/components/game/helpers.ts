@@ -1,5 +1,5 @@
 import { getValueFromCache, savePropierties } from "../../utils/storage";
-import { SIZE_GRID } from "../../utils/constants";
+import { SIZE_GRID, TOTAL_HELP_PER_LEVEL } from "../../utils/constants";
 import { solve } from "./solvePuzzle";
 import { Tile } from "./components";
 import { TileProps } from "./components/tile";
@@ -25,11 +25,16 @@ let GRID: TileProps[][] = [];
 let SIZE_LEVEL = 0;
 let GAME_STARTED = false;
 let TIMER_ELEMET: HTMLElement;
+let TOTAL_HELP_ELEMENT: HTMLElement;
 let INTERVAL_CHRONOMETER: NodeJS.Timeout | null;
 let TIMER = { m: 0, s: 0 };
 let LEVEL_COMPLETED = false;
 let INTERVAL_SOLVE: NodeJS.Timeout;
 let IS_SOLVING = false;
+let TOTAL_HELP = TOTAL_HELP_PER_LEVEL;
+let STEPS_SOLVE_PUZZLE: number[] = [];
+let COUNTER_SOLVE = 0;
+let CLICK_TILE = false;
 
 const DIRECTIONS_TO_MOVE = [
   {
@@ -335,6 +340,22 @@ const showMessage = async () => {
   });
 };
 
+const showErroMessage = () => {
+  Alert.show({
+    icon: "😭",
+    txt: "<h4>Sorry, I haven't found a solution for this level, do you want to try again?</h4>",
+    no: "No",
+    yes: "Yes",
+    cb: (succes) => {
+      if (succes) {
+        startGame();
+      } else {
+        Screen();
+      }
+    },
+  });
+};
+
 /**
  * Validar cuando se hace click sobre una ficha...
  * @param id
@@ -381,6 +402,8 @@ const clickOnTile = async (id = "") => {
       stopChronometer();
       showMessage();
     }
+
+    CLICK_TILE = true;
   }
 };
 
@@ -412,15 +435,24 @@ const startChronometer = () => {
   }, 1000);
 };
 
+const showTotalHelp = () => {
+  TOTAL_HELP_ELEMENT.textContent = `${TOTAL_HELP}`;
+};
+
 /**
  * Para reiniciar el nivel...
  */
 const startGame = () => {
+  TOTAL_HELP = TOTAL_HELP_PER_LEVEL;
   IS_SOLVING = false;
   LEVEL_COMPLETED = false;
+  CLICK_TILE = false;
+  COUNTER_SOLVE = 0;
   TIMER = { m: 0, s: 0 };
-  changeStateButtons(false);
+  STEPS_SOLVE_PUZZLE = [];
+  showTotalHelp();
 
+  changeStateButtons(false);
   shuffleTiles();
   stopChronometer();
   startChronometer();
@@ -428,7 +460,7 @@ const startGame = () => {
 
 const automaticMovementSolvePuzzle = (counter = 0, order: number[] = []) => {
   const movement = order[counter];
-  // const tmpDirection = ["right", "down", "up", "left"];
+  const tmpDirection = ["right", "down", "up", "left"];
   const { r: xEmpty, c: yEmpty } = getCellIDByValue(0);
 
   const directions = [
@@ -453,9 +485,18 @@ const automaticMovementSolvePuzzle = (counter = 0, order: number[] = []) => {
   const newRow = xEmpty + directions[movement].r;
   const newCol = yEmpty + directions[movement].c;
 
-  swapValues({ r: newRow, c: newCol }, { r: xEmpty, c: yEmpty });
+  console.log({ xEmpty, yEmpty, newRow, newCol, dir: tmpDirection[movement] });
 
-  renderTilesPosition();
+  if (rowColumnWithinBoard(newRow, newCol)) {
+    swapValues({ r: newRow, c: newCol }, { r: xEmpty, c: yEmpty });
+    renderTilesPosition();
+  } else {
+    ($("#help") as HTMLButtonElement).disabled = true;
+    console.log("NO LO SOLCUONAD");
+    // showErroMessage();
+    clearInterval(INTERVAL_SOLVE);
+    stopChronometer();
+  }
 };
 
 const changeStateButtons = (isDisabled = false) => {
@@ -467,23 +508,30 @@ const changeStateButtons = (isDisabled = false) => {
   });
 };
 
+const getSolvePuzzleValues = () => {
+  const { r: x, c: y } = getCellIDByValue(0);
+  const size = SIZE_LEVEL ** 2;
+  const posit = GRID.flat().map((v) => (v.v === 0 ? size - 1 : v.v - 1));
+
+  console.log({ posit, x, y });
+
+  const solveValue = solve(size - 1, y, x, posit, SIZE_LEVEL);
+
+  return solveValue;
+};
+
 const solvePuzzle = () => {
   IS_SOLVING = true;
 
   // Bloquer los botones...
   changeStateButtons(true);
 
-  // let INTERVAL_SOLVE: NodeJS.Timeout | null;
-
-  const { r: x, c: y } = getCellIDByValue(0);
-  const size = SIZE_LEVEL ** 2;
-  const posit = GRID.flat().map((v) => (v.v === 0 ? size - 1 : v.v - 1));
-  const solveValue = solve(size - 1, y, x, posit, SIZE_LEVEL);
+  STEPS_SOLVE_PUZZLE = getSolvePuzzleValues();
 
   let counter = 0;
   INTERVAL_SOLVE = setInterval(() => {
-    if (counter < solveValue.length) {
-      automaticMovementSolvePuzzle(counter, solveValue);
+    if (counter < STEPS_SOLVE_PUZZLE.length) {
+      automaticMovementSolvePuzzle(counter, STEPS_SOLVE_PUZZLE);
       counter++;
     } else {
       clearInterval(INTERVAL_SOLVE);
@@ -492,19 +540,7 @@ const solvePuzzle = () => {
       if (levelSolved) {
         showMessage();
       } else {
-        Alert.show({
-          icon: "😭",
-          txt: "<h4>Sorry, I haven't found a solution for this level, do you want to try again?</h4>",
-          no: "No",
-          yes: "Yes",
-          cb: (succes) => {
-            if (succes) {
-              startGame();
-            } else {
-              Screen();
-            }
-          },
-        });
+        showErroMessage();
       }
     }
   }, 100);
@@ -518,6 +554,7 @@ const solvePuzzle = () => {
 export const initComponent = (size = 3) => {
   SIZE_LEVEL = size;
   TIMER_ELEMET = $(".game-he-t span") as HTMLElement;
+  TOTAL_HELP_ELEMENT = $("#help span") as HTMLElement;
   GAME_STARTED = false;
 
   createLevel();
@@ -533,22 +570,54 @@ export const initComponent = (size = 3) => {
       startGame();
     }
 
-    if (action === "pause") {
-      stopChronometer();
-      Alert.show({
-        icon: "⚠️",
-        txt: `<h3>Do you want to continue solving the level or do you want to restart it?</h3>`,
-        no: "Restart",
-        yes: "Continue",
-        cb: (succes) => {
-          if (succes) {
-            startChronometer();
-          } else {
-            startGame();
+    if (action === "help") {
+      if (TOTAL_HELP - 1 >= 0) {
+        TOTAL_HELP--;
+        showTotalHelp();
+
+        if (STEPS_SOLVE_PUZZLE.length === 0 || CLICK_TILE) {
+          console.log("CARGA LA SOLUCIÓN");
+          COUNTER_SOLVE = 0;
+          STEPS_SOLVE_PUZZLE = getSolvePuzzleValues();
+          CLICK_TILE = false;
+        } else {
+          COUNTER_SOLVE++;
+        }
+
+        console.log("solveValue: ", STEPS_SOLVE_PUZZLE);
+        if (STEPS_SOLVE_PUZZLE.length > 0) {
+          let levelSolved = false;
+
+          if (COUNTER_SOLVE < STEPS_SOLVE_PUZZLE.length) {
+            automaticMovementSolvePuzzle(COUNTER_SOLVE, STEPS_SOLVE_PUZZLE);
+            levelSolved = validateOrderedTiles();
           }
-        },
-      });
+
+          if (levelSolved) {
+            showMessage();
+          }
+        } else {
+          showErroMessage();
+        }
+      }
     }
+
+    // if (action === "pause") {
+    //   stopChronometer();
+    //   Alert.show({
+    //     icon: "⚠️",
+    //     txt: `<h3>Do you want to continue solving the level or do you want to restart it?</h3>`,
+    //     no: "Restart",
+    //     yes: "Continue",
+    //     cb: (succes) => {
+    //       if (succes) {
+    //         startChronometer();
+    //       } else {
+    //         startGame();
+    //       }
+    //     },
+    //   });
+    // }
 
     if (
       action.includes("ti-") &&
