@@ -42,3 +42,7 @@
 .game-fo-b:hover {
   background: #ffab23;
 }
+
+.game-fo-b[disabled] {
+  opacity: 0.5;
+}

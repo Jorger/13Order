@@ -108,8 +108,11 @@ export const isValidJson = (json = "") => {
   }
 };
 
-const serializeIntervalNumber = (number = 0) =>
+export const serializeIntervalNumber = (number = 0) =>
   number <= 9 ? `0${number}` : `${number}`;
 
 export const showIntervalValue = (timer: { m: number; s: number }) =>
   `${serializeIntervalNumber(timer.m)}:${serializeIntervalNumber(timer.s)}`;
+
+export const timeToseconds = (timer: { m: number; s: number }) =>
+  timer.m * 60 + timer.s;

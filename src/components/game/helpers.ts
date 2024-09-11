@@ -1,9 +1,11 @@
-import { shuffleMatrix } from "./shuffleMatrix";
+import { getValueFromCache, savePropierties } from "../../utils/storage";
 import { SIZE_GRID } from "../../utils/constants";
+import { solve } from "./solvePuzzle";
 import { Tile } from "./components";
 import { TileProps } from "./components/tile";
 import {
   $,
+  $$,
   addClass,
   addStyle,
   delay,
@@ -12,10 +14,11 @@ import {
   generateUUID,
   setHtml,
   showIntervalValue,
+  timeToseconds,
 } from "../../utils/helpers";
 import Alert from "../alert";
+import mixBoard from "./mixBoard";
 import Screen from "../../Screen";
-import { savePropierties } from "../../utils/storage";
 
 let SIZE_TILE = 0;
 let GRID: TileProps[][] = [];
@@ -25,6 +28,8 @@ let TIMER_ELEMET: HTMLElement;
 let INTERVAL_CHRONOMETER: NodeJS.Timeout | null;
 let TIMER = { m: 0, s: 0 };
 let LEVEL_COMPLETED = false;
+let INTERVAL_SOLVE: NodeJS.Timeout;
+let IS_SOLVING = false;
 
 const DIRECTIONS_TO_MOVE = [
   {
@@ -132,11 +137,23 @@ const swapValues = (origin = { r: 0, c: 0 }, destinity = { r: 0, c: 0 }) => {
  * Para establecer un orden aleatorio de las fichas...
  */
 const shuffleTiles = () => {
-  GRID = shuffleMatrix(GRID);
+  const size = SIZE_LEVEL ** 2;
+  const posit = fillArray(size);
+  const orgData = mixBoard(size - 1, size, size, posit);
+  const base = orgData.map((v) => (v + 1 === size ? 0 : v + 1));
+  const shuffle = base.map((v) => [v, getCellIDByValue(v).id]);
+  const tmpMatriz = [];
+
+  for (let i = 0; i < size; i += SIZE_LEVEL) {
+    tmpMatriz.push(shuffle.slice(i, i + SIZE_LEVEL));
+  }
 
   for (let r = 0; r < SIZE_LEVEL; r++) {
     for (let c = 0; c < SIZE_LEVEL; c++) {
+      const [value, id] = tmpMatriz[r][c];
       const { x, y } = calculatePosition(c, r);
+      GRID[r][c].v = value as number;
+      GRID[r][c].id = id as string;
 
       GRID[r][c].x = x;
       GRID[r][c].y = y;
@@ -161,6 +178,18 @@ const getRowCol = (id = "") => {
   }
 
   return { r: 0, c: 0 };
+};
+
+const getCellIDByValue = (value = 0) => {
+  for (let r = 0; r < SIZE_LEVEL; r++) {
+    for (let c = 0; c < SIZE_LEVEL; c++) {
+      if (GRID[r][c].v === value) {
+        return { r, c, id: GRID[r][c].id };
+      }
+    }
+  }
+
+  return { r: 0, c: 0, id: "" };
 };
 
 /**
@@ -251,6 +280,62 @@ const validateOrderedTiles = () => {
 };
 
 /**
+ * Guarda el tiempo que tomó en resolver el nivel,
+ * sólo guarda cuando el tiempo es inferior al que se tenía antes
+ */
+const saveTimeSolveLevel = () => {
+  const cacheKey = `t-${SIZE_LEVEL}`;
+  const currentTime = getValueFromCache<{ m: number; s: number }>(cacheKey, {
+    m: -1,
+    s: -1,
+  });
+
+  const hasTime = currentTime.m >= 0 || currentTime.s >= 0;
+  let saveTime = true;
+
+  if (hasTime) {
+    // Para validar si el nuevo tiempo es menor que el tiempo que estaba...
+    saveTime = timeToseconds(TIMER) < timeToseconds(currentTime);
+  }
+
+  if (saveTime) {
+    // Se guarda el tiempo que tomó resolver el nivel...
+    savePropierties<{ m: number; s: number }>(`t-${SIZE_LEVEL}`, TIMER);
+  }
+};
+
+const showMessage = async () => {
+  LEVEL_COMPLETED = true;
+  await delay(500);
+
+  const data = {
+    icon: "🎉",
+    txt: `<h4>Excellent, you solved the level in ${showIntervalValue(
+      TIMER
+    )}, do you want to play again?</h4>`,
+  };
+
+  if (IS_SOLVING) {
+    data.icon = "🤖";
+    data.txt =
+      "<h4>I've solved the level for you! Want to give it another shot? 🎉</h4>";
+  }
+
+  Alert.show({
+    ...data,
+    no: "No",
+    yes: "Yes",
+    cb: (succes) => {
+      if (succes) {
+        startGame();
+      } else {
+        Screen();
+      }
+    },
+  });
+};
+
+/**
  * Validar cuando se hace click sobre una ficha...
  * @param id
  */
@@ -292,27 +377,9 @@ const clickOnTile = async (id = "") => {
      * Se valida si las fichas ya están ordenadas...
      */
     if (validateOrderedTiles()) {
-      // Se guarda el tiempo que tomó resolver el nivel...
-      savePropierties<{ m: number; s: number }>(`t-${SIZE_LEVEL}`, TIMER);
+      saveTimeSolveLevel();
       stopChronometer();
-      LEVEL_COMPLETED = true;
-      await delay(500);
-
-      Alert.show({
-        icon: "🎉",
-        txt: `<h4>Excellent, you solved the level in ${showIntervalValue(
-          TIMER
-        )}, do you want to play again?</h4>`,
-        no: "No",
-        yes: "Yes",
-        cb: (succes) => {
-          if (succes) {
-            startGame();
-          } else {
-            Screen();
-          }
-        },
-      });
+      showMessage();
     }
   }
 };
@@ -349,10 +416,98 @@ const startChronometer = () => {
  * Para reiniciar el nivel...
  */
 const startGame = () => {
+  IS_SOLVING = false;
+  LEVEL_COMPLETED = false;
   TIMER = { m: 0, s: 0 };
+  changeStateButtons(false);
+
   shuffleTiles();
   stopChronometer();
   startChronometer();
+};
+
+const automaticMovementSolvePuzzle = (counter = 0, order: number[] = []) => {
+  const movement = order[counter];
+  // const tmpDirection = ["right", "down", "up", "left"];
+  const { r: xEmpty, c: yEmpty } = getCellIDByValue(0);
+
+  const directions = [
+    {
+      r: 0,
+      c: -1,
+    },
+    {
+      r: -1,
+      c: 0,
+    },
+    {
+      r: 1,
+      c: 0,
+    },
+    {
+      r: 0,
+      c: 1,
+    },
+  ];
+
+  const newRow = xEmpty + directions[movement].r;
+  const newCol = yEmpty + directions[movement].c;
+
+  swapValues({ r: newRow, c: newCol }, { r: xEmpty, c: yEmpty });
+
+  renderTilesPosition();
+};
+
+const changeStateButtons = (isDisabled = false) => {
+  $$(".game-fo-o > button").forEach((button) => {
+    if (button.id !== "lobby") {
+      // @ts-ignore
+      button.disabled = isDisabled;
+    }
+  });
+};
+
+const solvePuzzle = () => {
+  IS_SOLVING = true;
+
+  // Bloquer los botones...
+  changeStateButtons(true);
+
+  // let INTERVAL_SOLVE: NodeJS.Timeout | null;
+
+  const { r: x, c: y } = getCellIDByValue(0);
+  const size = SIZE_LEVEL ** 2;
+  const posit = GRID.flat().map((v) => (v.v === 0 ? size - 1 : v.v - 1));
+  const solveValue = solve(size - 1, y, x, posit, SIZE_LEVEL);
+
+  let counter = 0;
+  INTERVAL_SOLVE = setInterval(() => {
+    if (counter < solveValue.length) {
+      automaticMovementSolvePuzzle(counter, solveValue);
+      counter++;
+    } else {
+      clearInterval(INTERVAL_SOLVE);
+      const levelSolved = validateOrderedTiles();
+
+      if (levelSolved) {
+        showMessage();
+      } else {
+        Alert.show({
+          icon: "😭",
+          txt: "<h4>Sorry, I haven't found a solution for this level, do you want to try again?</h4>",
+          no: "No",
+          yes: "Yes",
+          cb: (succes) => {
+            if (succes) {
+              startGame();
+            } else {
+              Screen();
+            }
+          },
+        });
+      }
+    }
+  }, 100);
 };
 
 /**
@@ -363,6 +518,7 @@ const startGame = () => {
 export const initComponent = (size = 3) => {
   SIZE_LEVEL = size;
   TIMER_ELEMET = $(".game-he-t span") as HTMLElement;
+  GAME_STARTED = false;
 
   createLevel();
 
@@ -394,12 +550,23 @@ export const initComponent = (size = 3) => {
       });
     }
 
-    if (action.includes("ti-") && GAME_STARTED && !LEVEL_COMPLETED) {
+    if (
+      action.includes("ti-") &&
+      GAME_STARTED &&
+      !LEVEL_COMPLETED &&
+      !IS_SOLVING
+    ) {
       clickOnTile(action);
     }
 
+    if (action === "solve") {
+      stopChronometer();
+      solvePuzzle();
+    }
+
     if (action === "lobby") {
-      startChronometer();
+      clearInterval(INTERVAL_SOLVE);
+      stopChronometer();
       Screen();
     }
   });
