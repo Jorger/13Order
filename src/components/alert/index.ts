@@ -9,18 +9,20 @@ import {
   $on,
 } from "../../utils/helpers";
 
-interface AlertShow {
+export type Callback = (success?: boolean) => void;
+
+export interface AlertShow {
   txt: string;
   icon: string;
   yes?: string;
   no?: string;
-  cb?: (success?: boolean) => void;
+  cb?: Callback;
   timer?: number;
 }
 
 interface AlertProps {
   interval: NodeJS.Timeout | null;
-  callback?: (success?: boolean) => void;
+  callback?: Callback;
   show({ txt, icon, yes, no, cb, timer }: AlertShow): void;
   hide(): void;
   render: () => string;

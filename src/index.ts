@@ -10,7 +10,8 @@ setHtml($(`#${ROOT}`), Container());
 /**
  * Renderizar la pantalla, en este caso la de lobby...
  */
-Screen("Game", { s: 4 });
+// Screen("Game", { s: 4 });
+Screen();
 
 $on(document as any, "contextmenu", (event) => event.preventDefault());
 
