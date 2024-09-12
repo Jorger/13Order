@@ -1,6 +1,6 @@
 # 1️⃣3️⃣ Order
 
-![127 0 0 1_8080_(Nexus 6P) (2) (1)](https://github.com/user-attachments/assets/8fec5b71-13ea-4fe2-a2d2-462846fa677d)
+![icon_02](https://github.com/user-attachments/assets/6c5db817-3a97-4240-be71-9a08fec36c04)
 
 En este desafío de rompecabezas numérico, tu misión es ordenar los números en tableros de diferentes tamaños, desde 3x3 hasta 13x13. Cada nivel presenta un rompecabezas único y cada vez más complejo, poniendo a prueba tu lógica y paciencia.
 
