@@ -10,6 +10,8 @@ El verdadero desafío te espera en el nivel final: ¡el tablero de 13x13! Este n
 
 ¿Estás listo para enfrentarte a estos rompecabezas y conquistar el tablero final? ¡Empieza a jugar y demuestra tu habilidad resolviendo estos puzzles.
 
+Juego desarrollado para la [Js13k](https://js13kgames.com/) cuyo tema era [Triskaidekaphobia](https://medium.com/js13kgames/js13kgames-2024-start-and-theme-announcement-5d734f77da68).
+
 # 👨🏻‍💻 Autor.
 
 **Jorge Rubiano**
