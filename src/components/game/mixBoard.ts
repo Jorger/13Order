@@ -34,10 +34,8 @@ const fillTwo = (
     }
   }
 
-  //Check position of blank space; move to bottom right
   c += wid - 1 - blnkx + (hgh - 1) - blnky;
 
-  //if parity odd then swap
   if (c & 1) {
     posit[s1] = siz - 2;
     posit[s2] = siz - 1;

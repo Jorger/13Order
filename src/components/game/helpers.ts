@@ -1,6 +1,6 @@
 import { getValueFromCache, savePropierties } from "../../utils/storage";
-import { SIZE_GRID, TOTAL_HELP_PER_LEVEL } from "../../utils/constants";
-import { solve } from "./solvePuzzle";
+import { NUMBER_HELP_PER_LEVEL, SIZE_GRID } from "../../utils/constants";
+import { PlaySound, toogleSounds } from "../../utils/sounds";
 import { Tile } from "./components";
 import { TileProps } from "./components/tile";
 import {
@@ -17,6 +17,7 @@ import {
   timeToseconds,
 } from "../../utils/helpers";
 import Alert from "../alert";
+import getStepsSolvePuzzle from "./solvePuzzle";
 import mixBoard from "./mixBoard";
 import Screen from "../../Screen";
 
@@ -31,7 +32,7 @@ let TIMER = { m: 0, s: 0 };
 let LEVEL_COMPLETED = false;
 let INTERVAL_SOLVE: NodeJS.Timeout;
 let IS_SOLVING = false;
-let TOTAL_HELP = TOTAL_HELP_PER_LEVEL;
+let TOTAL_HELP = 0;
 let STEPS_SOLVE_PUZZLE: number[] = [];
 let COUNTER_SOLVE = 0;
 let CLICK_TILE = false;
@@ -92,7 +93,8 @@ const getTiles = (): TileProps[][] =>
  * Crea la información base del nivel, dependiendo del tamaño del mismo...
  */
 const createLevel = () => {
-  SIZE_TILE = Math.round(SIZE_GRID / SIZE_LEVEL);
+  // SIZE_TILE = Math.round(SIZE_GRID / SIZE_LEVEL);
+  SIZE_TILE = SIZE_GRID / SIZE_LEVEL;
   GRID = getTiles();
 
   const newTiles = GRID.map((f) => f.map((t) => (t.v !== 0 ? Tile(t) : "")))
@@ -136,6 +138,8 @@ const swapValues = (origin = { r: 0, c: 0 }, destinity = { r: 0, c: 0 }) => {
 
   GRID[origin.r][origin.c].id = tileEmptyID;
   GRID[origin.r][origin.c].v = tileEmptyValue;
+
+  PlaySound("shot");
 };
 
 /**
@@ -323,7 +327,7 @@ const showMessage = async () => {
   if (IS_SOLVING) {
     data.icon = "🤖";
     data.txt =
-      "<h4>I've solved the level for you! Want to give it another shot? 🎉</h4>";
+      "<h4>I've solved the level for you!, This doesn't count as if you had solved it yourself 😉. Want to give it another shot? 🎉</h4>";
   }
 
   Alert.show({
@@ -338,6 +342,8 @@ const showMessage = async () => {
       }
     },
   });
+
+  PlaySound("gameOver");
 };
 
 const showErroMessage = () => {
@@ -354,6 +360,8 @@ const showErroMessage = () => {
       }
     },
   });
+
+  PlaySound("blocked");
 };
 
 /**
@@ -443,7 +451,7 @@ const showTotalHelp = () => {
  * Para reiniciar el nivel...
  */
 const startGame = () => {
-  TOTAL_HELP = TOTAL_HELP_PER_LEVEL;
+  TOTAL_HELP = NUMBER_HELP_PER_LEVEL[SIZE_LEVEL];
   IS_SOLVING = false;
   LEVEL_COMPLETED = false;
   CLICK_TILE = false;
@@ -485,15 +493,11 @@ const automaticMovementSolvePuzzle = (counter = 0, order: number[] = []) => {
   const newRow = xEmpty + directions[movement].r;
   const newCol = yEmpty + directions[movement].c;
 
-  console.log({ xEmpty, yEmpty, newRow, newCol, dir: tmpDirection[movement] });
-
   if (rowColumnWithinBoard(newRow, newCol)) {
     swapValues({ r: newRow, c: newCol }, { r: xEmpty, c: yEmpty });
     renderTilesPosition();
   } else {
     ($("#help") as HTMLButtonElement).disabled = true;
-    console.log("NO LO SOLCUONAD");
-    // showErroMessage();
     clearInterval(INTERVAL_SOLVE);
     stopChronometer();
   }
@@ -501,10 +505,8 @@ const automaticMovementSolvePuzzle = (counter = 0, order: number[] = []) => {
 
 const changeStateButtons = (isDisabled = false) => {
   $$(".game-fo-o > button").forEach((button) => {
-    if (button.id !== "lobby") {
-      // @ts-ignore
-      button.disabled = isDisabled;
-    }
+    // @ts-ignore
+    button.disabled = isDisabled;
   });
 };
 
@@ -512,10 +514,7 @@ const getSolvePuzzleValues = () => {
   const { r: x, c: y } = getCellIDByValue(0);
   const size = SIZE_LEVEL ** 2;
   const posit = GRID.flat().map((v) => (v.v === 0 ? size - 1 : v.v - 1));
-
-  console.log({ posit, x, y });
-
-  const solveValue = solve(size - 1, y, x, posit, SIZE_LEVEL);
+  const solveValue = getStepsSolvePuzzle(size - 1, y, x, posit, SIZE_LEVEL);
 
   return solveValue;
 };
@@ -576,7 +575,6 @@ export const initComponent = (size = 3) => {
         showTotalHelp();
 
         if (STEPS_SOLVE_PUZZLE.length === 0 || CLICK_TILE) {
-          console.log("CARGA LA SOLUCIÓN");
           COUNTER_SOLVE = 0;
           STEPS_SOLVE_PUZZLE = getSolvePuzzleValues();
           CLICK_TILE = false;
@@ -584,7 +582,6 @@ export const initComponent = (size = 3) => {
           COUNTER_SOLVE++;
         }
 
-        console.log("solveValue: ", STEPS_SOLVE_PUZZLE);
         if (STEPS_SOLVE_PUZZLE.length > 0) {
           let levelSolved = false;
 
@@ -601,23 +598,6 @@ export const initComponent = (size = 3) => {
         }
       }
     }
-
-    // if (action === "pause") {
-    //   stopChronometer();
-    //   Alert.show({
-    //     icon: "⚠️",
-    //     txt: `<h3>Do you want to continue solving the level or do you want to restart it?</h3>`,
-    //     no: "Restart",
-    //     yes: "Continue",
-    //     cb: (succes) => {
-    //       if (succes) {
-    //         startChronometer();
-    //       } else {
-    //         startGame();
-    //       }
-    //     },
-    //   });
-    // }
 
     if (
       action.includes("ti-") &&
@@ -637,6 +617,10 @@ export const initComponent = (size = 3) => {
       clearInterval(INTERVAL_SOLVE);
       stopChronometer();
       Screen();
+    }
+
+    if (action === "sounds") {
+      toogleSounds($("#sounds") as HTMLElement);
     }
   });
 

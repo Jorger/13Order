@@ -1,7 +1,6 @@
 import "./styles.css";
 
 const buttons = [
-  ["lobby", "✕", "Go to the lobby"],
   ["help", "💡", "Help"],
   ["solve", "❯", "Solve level"],
   ["restart", "↺", "Restart board"],

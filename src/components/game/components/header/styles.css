@@ -17,6 +17,7 @@
 
 .game-he-s {
   margin-bottom: 5px;
+  text-transform: uppercase;
 }
 
 .game-he-t {
@@ -31,4 +32,34 @@
 
 .game-he-t span {
   margin-left: 10px;
+}
+
+.game-he #sounds {
+  position: absolute;
+  right: 20px;
+}
+
+.game-he #lobby {
+  position: absolute;
+  left: 20px;
+  font-size: 23px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(#ffec64, #ffab23);
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px,
+    rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+}
+
+.game-he #lobby span {
+  transform: rotate(180deg);
+  display: block;
+  pointer-events: none;
+}
+
+.game-he #lobby:hover {
+  background: #ffab23;
 }

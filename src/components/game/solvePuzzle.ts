@@ -1,12 +1,19 @@
-let seq: number[] = [];
-let blnkx = 0;
-let blnky = 0;
-let hgh = 0;
-let wid = 0;
-let posit: number[] = [];
-let siz = 0;
+let seq: number[] = []; // Secuencia de movimientos para resolver el puzzle
+let blnkx = 0; // Posición x del espacio en blanco
+let blnky = 0; // Posición y del espacio en blanco
+let hgh = 0; // Altura del puzzle
+let wid = 0; // Ancho del puzzle
+let posit: number[] = []; // Posiciones actuales de las piezas del puzzle
+let siz = 0; // Tamaño total del puzzle
 
+/**
+ * Función que realiza un movimiento en el puzzle
+ * @param m
+ */
 const domove = (m = 0) => {
+  /**
+   * Cálculo del índice del espacio en blanco
+   */
   const d = blnkx + blnky * wid;
 
   if (m === 0) {
@@ -28,6 +35,10 @@ const domove = (m = 0) => {
   }
 };
 
+/**
+ * Función que agrega una serie de movimientos a la secuencia de movimientos
+ * @param positions
+ */
 const push = (positions: number[] = []) => {
   for (let i = 0; i < positions.length; i++) {
     const c = positions[i];
@@ -37,6 +48,9 @@ const push = (positions: number[] = []) => {
   }
 };
 
+/**
+ * Función que mueve una pieza a una posición específica en el puzzle
+ */
 const movepiece = (p = 0, y = 0, x = 0) => {
   let c = -1;
   let j = 0;
@@ -50,26 +64,24 @@ const movepiece = (p = 0, y = 0, x = 0) => {
     if (posit[c] === p) break;
   }
 
-  //Move piece to same column         //0=right, 1=down, 2=up, 3=left
-  if (j < x && blnky == y) push([2]); // move blank down if it might disturb solved pieces.
+  /**
+   * Mueve la pieza a la posición (x, y)...
+   */
+  if (j < x && blnky == y) push([2]);
+
   while (j > x) {
-    //move piece to left
-    //First move blank to left hand side of it
     if (blnky === i && blnkx > j) {
-      //if blank on wrong side of piece
       if (i === hgh - 1) push([1]);
-      else push([2]); //then move it to other row
+      else push([2]);
     }
-    while (blnkx >= j) push([0]); // move blank to column left of piece
+    while (blnkx >= j) push([0]);
     while (blnkx < j - 1) push([3]);
-    while (blnky < i) push([2]); // move blank to same row as piece
+    while (blnky < i) push([2]);
     while (blnky > i) push([1]);
-    push([3]); // move piece to left.
+    push([3]);
     j--;
   }
   while (j < x) {
-    //move piece to right
-    //First move blank to right hand side of it
     if (blnky === i && blnkx < j) {
       if (i === hgh - 1) push([1]);
       else push([2]);
@@ -82,7 +94,6 @@ const movepiece = (p = 0, y = 0, x = 0) => {
     j++;
   }
 
-  //Move piece up to same row         //0=right, 1=down, 2=up, 3=left
   while (i > y) {
     if (y < i - 1) {
       while (blnky < i - 1) push([2]);
@@ -114,8 +125,6 @@ const movepiece = (p = 0, y = 0, x = 0) => {
     i--;
   }
   while (i < y) {
-    //move piece downwards
-    //First move blank below tile
     if (blnkx === j && blnky < i) {
       if (j === wid - 1) push([0]);
       else push([3]);
@@ -129,13 +138,19 @@ const movepiece = (p = 0, y = 0, x = 0) => {
   }
 };
 
-export const solve = (
+/**
+ * Función principal que devuelve la secuencia de pasos para resolver el puzzle...
+ */
+const getStepsSolvePuzzle = (
   totalSize = 15,
   posXEmpty = 0,
   posYEmpty = 0,
   Oposit: number[] = [],
   size = 0
 ) => {
+  /**
+   * Copia las posiciones iniciales
+   */
   posit = JSON.parse(JSON.stringify(Oposit));
 
   blnkx = posXEmpty;
@@ -149,50 +164,45 @@ export const solve = (
   seq.length = 0;
 
   const back = [];
+  /**
+   * Mueve las piezas en las filas del rompecabezas
+   */
   for (let i = 0; i <= siz; i++) back[i] = posit[i];
   back[siz + 1] = blnkx;
   back[siz + 2] = blnky;
 
-  //restore top rows
   let rr = 0;
   for (let r = 0; r < hgh - 2; r++) {
     for (let c = 0; c < wid; c++) movepiece(rr + c, r, c);
     rr += wid;
   }
 
-  //restore left columns
   for (let c = 0; c < wid - 2; c++) {
-    //restore top tile of column.
     movepiece(rr, hgh - 2, c);
-    //restore bottom tile of column
-    if (blnkx === c) push([3]); //fill destination spot
+    if (blnkx === c) push([3]);
     if (posit[rr + wid] !== rr + wid) {
       movepiece(rr + wid, hgh - 1, c + 1);
       if (blnky !== hgh - 1) {
-        //0=right, 1=down, 2=up, 3=left
-        //A.X or AX.
-        //XBX    XBX
         if (blnkx === c + 1) push([3]);
         push([2]);
       }
-      //AXX
-      //XB.
       while (blnkx > c + 2) push([0]);
       push([0, 0, 1, 3, 2, 3, 1, 0, 0, 2, 3]);
     }
     rr++;
   }
-  //last 2x2 square
+
   if (blnkx < wid - 1) push([3]);
   if (blnky < hgh - 1) push([2]);
   rr = siz - wid - 1;
   if (posit[rr] === rr + 1) push([1, 0, 2, 3]);
   if (posit[rr] === rr + wid) push([0, 1, 3, 2]);
 
-  //restore pieces;
   for (let i = 0; i <= siz; i++) posit[i] = back[i];
   blnkx = back[siz + 1];
   blnky = back[siz + 2];
 
   return seq;
 };
+
+export default getStepsSolvePuzzle;

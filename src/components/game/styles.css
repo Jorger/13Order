@@ -40,3 +40,18 @@
   font-size: 20px;
   border-radius: 6px;
 }
+
+.game.si-11 .tile {
+  font-size: 17px;
+  border-radius: 6px;
+}
+
+.game.si-12 .tile {
+  font-size: 15px;
+  border-radius: 5px;
+}
+
+.game.si-13 .tile {
+  font-size: 13px;
+  border-radius: 5px;
+}

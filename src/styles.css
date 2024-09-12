@@ -14,7 +14,7 @@ body {
   overflow: hidden;
   overscroll-behavior-x: none;
   position: fixed;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   user-select: none;
 }
 
